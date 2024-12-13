@@ -4,17 +4,21 @@ export class CreateUserDto {
   @IsString()
   first_name: string;
   @IsString()
-  last_name: number;
+  last_name: string;
   @IsEmail()
   email: string;
   @IsStrongPassword()
   password: string;
 }
 export class LoginDto {
+  @IsEmail()
   email: string;
-  passwrord: string;
+  @IsStrongPassword()
+  password: string;
 }
 export class updatePasswordDto {
+  @IsStrongPassword()
   oldPassword: string;
-  passwrord: string;
+  @IsStrongPassword()
+  password: string;
 }

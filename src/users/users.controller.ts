@@ -3,12 +3,16 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, updatePasswordDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  LoginDto,
+  updatePasswordDto,
+} from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -18,7 +22,10 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.register(createUserDto);
   }
-
+  @Post('/login')
+  login(@Body() loginData: LoginDto) {
+    return this.usersService.login(loginData);
+  }
   @Get()
   findAll() {
     return this.usersService.getAll();
@@ -29,7 +36,7 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: updatePasswordDto) {
     return this.usersService.updatePassword(id, updateUserDto);
   }

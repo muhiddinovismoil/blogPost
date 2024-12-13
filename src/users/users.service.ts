@@ -8,7 +8,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './entities/user.entity';
 import { checkPassword, generateHash } from './helpers/bcrypt';
-
+import * as fs from 'fs/promises';
+import * as path from 'path';
+const filePath = path.join(process.cwd(), 'src', 'json', 'userId.json');
 @Injectable()
 export class UsersService {
   constructor(@InjectModel('users') private readonly userModel: Model<User>) {}
@@ -24,7 +26,10 @@ export class UsersService {
           password: hashPass,
         });
         newUser.save();
-        return newUser._id;
+        return {
+          msg: 'You are registered successfully',
+          userId: newUser._id,
+        };
       }
     } catch (error) {
       return error;
@@ -33,21 +38,29 @@ export class UsersService {
 
   async login(data: LoginDto) {
     try {
-      const getUser = await this.userModel.findOne({ email: data.email });
+      const getUser = await this.userModel.findOne({
+        email: data.email,
+      });
       if (!getUser) {
-        return;
-      }
-      const checkPass = await checkPassword(getUser.password, data.passwrord);
-      if (!checkPass) {
         return {
-          msg: 'Your password or email is not suited',
+          msg: 'User not found',
         };
       }
+      const checkPass = await checkPassword(data.password, getUser.password);
+      if (!checkPass) {
+        return {
+          msg: 'Your password or email is incorrect',
+        };
+      }
+      await fs.writeFile(filePath, JSON.stringify(getUser._id));
       return {
-        msg: 'You are logged in Successfully',
+        msg: 'You are logged in successfully',
       };
     } catch (error) {
-      return error;
+      return {
+        msg: 'An error occurred during login',
+        error: error.message,
+      };
     }
   }
 
@@ -73,9 +86,9 @@ export class UsersService {
       userPassUpdate.password,
     );
     if (!isOldPasswordCorrect) {
-      throw new Error('Your old password does not match');
+      return 'Your old password does not match';
     }
-    const hashedPassword = await generateHash(updateUserDto.passwrord);
+    const hashedPassword = await generateHash(updateUserDto.password);
     await this.userModel.findByIdAndUpdate(id, { password: hashedPassword });
     return { message: 'Your password has been updated successfully' };
   }

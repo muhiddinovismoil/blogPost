@@ -8,7 +8,7 @@ export class User {
   @Prop({ required: true })
   first_name: string;
   @Prop({ required: true })
-  last_name: number;
+  last_name: string;
   @Prop({ required: true, unique: true })
   email: string;
   @Prop({ required: true })

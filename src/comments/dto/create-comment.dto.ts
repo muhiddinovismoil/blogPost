@@ -1,10 +1,8 @@
-import { IsString, IsUUID } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class CreateCommentDto {
-  @IsUUID()
-  user_id: string;
   @IsString()
   content: number;
-  @IsUUID()
+  @IsString()
   post_id: string;
 }
