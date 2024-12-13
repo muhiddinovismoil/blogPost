@@ -1,26 +1,63 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentsService {
-  create(createCommentDto: CreateCommentDto) {
-    return 'This action adds a new comment';
+  constructor(
+    @InjectModel('comments') private readonly commentModel: Model<Comment>,
+  ) {}
+  async create(createCommentDto: CreateCommentDto) {
+    const newComment = new this.commentModel({ ...createCommentDto });
+    await newComment.save();
+    return {
+      msg: 'Comment Created',
+      comment: newComment,
+    };
+  }
+  async findAll() {
+    const getAllComment = await this.commentModel.find();
+    if (getAllComment.length == 0) {
+      return {
+        msg: 'There is no any comments',
+      };
+    }
+    return getAllComment;
   }
 
-  findAll() {
-    return `This action returns all comments`;
+  async findOne(id: string) {
+    const getCommentById = await this.commentModel.findById(id);
+    if (!getCommentById) {
+      return {
+        msg: `There is no any comment with this id`,
+      };
+    }
+    return getCommentById;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
+  async update(id: string, updateCommentDto: UpdateCommentDto) {
+    const updatedData = await this.commentModel.findByIdAndUpdate(
+      id,
+      updateCommentDto,
+      { new: true },
+    );
+    if (!updatedData) {
+      return `Comment not updated`;
+    }
+    return {
+      msg: 'Comment Updated',
+      updatedComment: updatedData,
+    };
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  async remove(id: string) {
+    const deleteUser = await this.commentModel.findByIdAndDelete(id);
+    if (!deleteUser) {
+      return `This comment not found or maybe deleted before`;
+    }
+    return deleteUser._id;
   }
 }
