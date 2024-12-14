@@ -3,21 +3,17 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { CreateCommentDto } from '../dto/create-comment.dto';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { NotFoundException } from 'src/exceptions/notfound.exception';
-const filePath = path.join(process.cwd(), 'src', 'json', 'userId.json');
 @Injectable()
 export class CommentsRepository {
   constructor(
     @InjectModel('comments') private readonly commentModel: Model<Comment>,
   ) {}
-  async create(createCommentDto: CreateCommentDto) {
+  async create(_id: string, createCommentDto: CreateCommentDto) {
     try {
-      const id = await fs.readFile(filePath, 'utf-8');
       const newComment = new this.commentModel({
         ...createCommentDto,
-        user_id: JSON.parse(id),
+        user_id: _id,
       });
       await newComment.save();
       return {

@@ -7,8 +7,8 @@ export class CommentsService {
   constructor(
     @Inject() private readonly commentsRepository: CommentsRepository,
   ) {}
-  async createComment(createCommentDto: CreateCommentDto) {
-    return this.commentsRepository.create(createCommentDto);
+  async createComment(id: string, createCommentDto: CreateCommentDto) {
+    return this.commentsRepository.create(id, createCommentDto);
   }
   async findAllComments() {
     return this.commentsRepository.findAll();

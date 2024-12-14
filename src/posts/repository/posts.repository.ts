@@ -1,22 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { Model } from 'mongoose';
 import { Post } from '../entities/post.entity';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { NotFoundException } from 'src/exceptions/notfound.exception';
-const filePath = path.join(process.cwd(), 'src', 'json', 'userId.json');
 @Injectable()
 export class PostsRepository {
   constructor(@InjectModel('posts') private readonly postsModel: Model<Post>) {}
-  async create(createPostDto: CreatePostDto) {
+  async create(id: string, createPostDto: CreatePostDto) {
     try {
-      const id = await fs.readFile(filePath, 'utf-8');
       const newPost = new this.postsModel({
         ...createPostDto,
-        user_id: JSON.parse(id),
+        user_id: id,
       });
       await newPost.save();
       return {

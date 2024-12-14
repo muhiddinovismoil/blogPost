@@ -5,8 +5,8 @@ import { PostsRepository } from './repository/posts.repository';
 @Injectable()
 export class PostsService {
   constructor(@Inject() private readonly postRepository: PostsRepository) {}
-  async create(createPostDto: CreatePostDto) {
-    return this.postRepository.create(createPostDto);
+  async create(id: string, createPostDto: CreatePostDto) {
+    return this.postRepository.create(id, createPostDto);
   }
   async findAllPosts() {
     return this.postRepository.findAll();

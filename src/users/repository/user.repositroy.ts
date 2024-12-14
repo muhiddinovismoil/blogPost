@@ -8,14 +8,16 @@ import {
   LoginDto,
   updatePasswordDto,
 } from '../dto/create-user.dto';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { BadRequestException } from 'src/exceptions/badrequest.exception';
 import { NotFoundException } from 'src/exceptions/notfound.exception';
-const filePath = path.join(process.cwd(), 'src', 'json', 'userId.json');
+import { JwtService } from '@nestjs/jwt';
+import { jwtConstants } from 'src/constants/jwt.constant';
 @Injectable()
 export class UserRepository {
-  constructor(@InjectModel('users') private readonly userModel: Model<User>) {}
+  constructor(
+    @InjectModel('users') private readonly userModel: Model<User>,
+    private readonly jwtService: JwtService,
+  ) {}
   async register(createUserDto: CreateUserDto) {
     try {
       const isUserExists = await this.userModel.findOne({
@@ -49,11 +51,28 @@ export class UserRepository {
       }
       const checkPass = await checkPassword(data.password, getUser.password);
       if (!checkPass) {
-        throw new BadRequestException('Your email or password not suit');
+        throw new BadRequestException('Your email or password does not match');
       }
-      await fs.writeFile(filePath, JSON.stringify(getUser._id));
+      const payload = {
+        sub: getUser._id,
+        first_name: getUser.first_name,
+        last_name: getUser.last_name,
+        email: getUser.email,
+        role: getUser.role,
+      };
+      const accessToken = await this.jwtService.signAsync(payload, {
+        secret: jwtConstants.access.secret,
+        expiresIn: jwtConstants.access.expiresTime,
+      });
+      const refreshToken = await this.jwtService.signAsync(payload, {
+        secret: jwtConstants.refresh.secret,
+        expiresIn: jwtConstants.refresh.expiresTime,
+      });
+
       return {
         msg: 'You are logged in successfully',
+        accessToken,
+        refreshToken,
       };
     } catch (error) {
       return error;
