@@ -1,63 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Post } from './entities/post.entity';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-const filePath = path.join(process.cwd(), 'src', 'json', 'userId.json');
+import { PostsRepository } from './repository/posts.repository';
 @Injectable()
 export class PostsService {
-  constructor(@InjectModel('posts') private readonly postsModel: Model<Post>) {}
+  constructor(@Inject() private readonly postRepository: PostsRepository) {}
   async create(createPostDto: CreatePostDto) {
-    const id = await fs.readFile(filePath, 'utf-8');
-    const newPost = new this.postsModel({
-      ...createPostDto,
-      user_id: JSON.parse(id),
-    });
-    await newPost.save();
-    return {
-      msg: 'Post created ',
-    };
+    return this.postRepository.create(createPostDto);
   }
-
-  async findAll() {
-    const getAllPosts = await this.postsModel.find();
-    if (getAllPosts.length == 0) {
-      return `Posts not found`;
-    }
-    return getAllPosts;
+  async findAllPosts() {
+    return this.postRepository.findAll();
   }
-
-  async findOne(id: string) {
-    const postById = await this.postsModel.findById(id);
-    if (!postById) {
-      return `Post not found`;
-    }
-    return postById;
+  async findOnePost(id: string) {
+    return this.postRepository.findOne(id);
   }
-
-  async update(id: string, updatePostDto: UpdatePostDto) {
-    const updatePost = await this.postsModel.findByIdAndUpdate(
-      id,
-      updatePostDto,
-      { new: true },
-    );
-    if (!updatePost) {
-      return `Post not found`;
-    }
-    return updatePost;
+  async updatePost(id: string, updatePostDto: UpdatePostDto) {
+    return this.postRepository.update(id, updatePostDto);
   }
-
-  async remove(id: string) {
-    const deletedPost = await this.postsModel.findByIdAndDelete(id);
-    if (!deletedPost) {
-      return `Post not found or deleted before`;
-    }
-    return {
-      msg: 'Post deleted',
-      deletedPostId: id,
-    };
+  async removePost(id: string) {
+    return this.postRepository.remove(id);
   }
 }

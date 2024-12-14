@@ -1,120 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   CreateUserDto,
   LoginDto,
   updatePasswordDto,
 } from './dto/create-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from './entities/user.entity';
-import { checkPassword, generateHash } from './helpers/bcrypt';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-const filePath = path.join(process.cwd(), 'src', 'json', 'userId.json');
+import { UserRepository } from './repository/user.repositroy';
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel('users') private readonly userModel: Model<User>) {}
-  async register(createUserDto: CreateUserDto) {
+  constructor(@Inject() private readonly userRepository: UserRepository) {}
+  async registerUser(createUserDto: CreateUserDto) {
     try {
-      const isUserExists = await this.userModel.findOne({
-        email: createUserDto.email,
-      });
-      const hashPass = await generateHash(createUserDto.password);
-      if (!isUserExists) {
-        const newUser = new this.userModel({
-          ...createUserDto,
-          password: hashPass,
-        });
-        newUser.save();
-        return {
-          msg: 'You are registered successfully',
-          userId: newUser._id,
-        };
-      }
+      return this.userRepository.register(createUserDto);
     } catch (error) {
       return error;
     }
   }
 
-  async login(data: LoginDto) {
+  async loginUser(data: LoginDto) {
     try {
-      const getUser = await this.userModel.findOne({
-        email: data.email,
-      });
-      if (!getUser) {
-        return {
-          msg: 'User not found',
-        };
-      }
-      const checkPass = await checkPassword(data.password, getUser.password);
-      if (!checkPass) {
-        return {
-          msg: 'Your password or email is incorrect',
-        };
-      }
-      await fs.writeFile(filePath, JSON.stringify(getUser._id));
-      return {
-        msg: 'You are logged in successfully',
-      };
+      return this.userRepository.login(data);
     } catch (error) {
-      return {
-        msg: 'An error occurred during login',
-        error: error.message,
-      };
+      return error;
     }
   }
 
-  async findOne(id: string) {
+  async findById(id: string) {
     try {
-      const getById = await this.userModel.findById(id);
-      if (!getById) {
-        return `User not found`;
-      }
-      return getById;
+      return this.userRepository.findOne(id);
     } catch (error) {
       return error;
     }
   }
 
   async updatePassword(id: string, updateUserDto: updatePasswordDto) {
-    const userPassUpdate = await this.userModel.findById(id);
-    if (!userPassUpdate) {
-      return `User not found`;
+    try {
+      return this.userRepository.update(id, updateUserDto);
+    } catch (error) {
+      return error;
     }
-    const isOldPasswordCorrect = await checkPassword(
-      updateUserDto.oldPassword,
-      userPassUpdate.password,
-    );
-    if (!isOldPasswordCorrect) {
-      return 'Your old password does not match';
-    }
-    const hashedPassword = await generateHash(updateUserDto.password);
-    await this.userModel.findByIdAndUpdate(id, { password: hashedPassword });
-    return { message: 'Your password has been updated successfully' };
   }
 
-  async getAll() {
+  async getAllUser() {
     try {
-      const allData = await this.userModel.find();
-      if (allData.length == 0) {
-        return `Users not found`;
-      }
-      return allData;
+      return this.userRepository.getAll();
     } catch (error) {
       return error;
     }
   }
   async deleteUserById(id: string) {
     try {
-      const findUser = await this.userModel.findById(id);
-      if (!findUser) {
-        return `User not found`;
-      }
-      await this.userModel.deleteOne({ _id: id });
-      return {
-        msg: 'Deleted',
-        userId: id,
-      };
+      return this.userRepository.deleteUserById(id);
     } catch (error) {
       return error;
     }

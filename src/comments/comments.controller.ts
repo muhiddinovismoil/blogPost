@@ -17,26 +17,26 @@ export class CommentsController {
 
   @Post()
   create(@Body() createCommentDto: CreateCommentDto) {
-    return this.commentsService.create(createCommentDto);
+    return this.commentsService.createComment(createCommentDto);
   }
 
   @Get()
   findAll() {
-    return this.commentsService.findAll();
+    return this.commentsService.findAllComments();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.commentsService.findOne(id);
+    return this.commentsService.findOneComment(id);
   }
 
   @Put(':id')
   update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentsService.update(id, updateCommentDto);
+    return this.commentsService.updateComment(id, updateCommentDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.commentsService.remove(id);
+    return this.commentsService.removeComment(id);
   }
 }

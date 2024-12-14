@@ -20,20 +20,20 @@ export class UsersController {
 
   @Post('/register')
   create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.register(createUserDto);
+    return this.usersService.registerUser(createUserDto);
   }
   @Post('/login')
   login(@Body() loginData: LoginDto) {
-    return this.usersService.login(loginData);
+    return this.usersService.loginUser(loginData);
   }
   @Get()
   findAll() {
-    return this.usersService.getAll();
+    return this.usersService.getAllUser();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+    return this.usersService.findById(id);
   }
 
   @Put(':id')
